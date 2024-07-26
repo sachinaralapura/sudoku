@@ -1,70 +1,156 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+// App.js
+import React, { useState } from "react";
+import { View, Button, TextInput, Text, StyleSheet } from "react-native";
+import Sudoku from "sudoku-umd";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+const generateRandomSudoku = () => {
+  // Difficulty can be adjusted here
+  const difficulty = "easy";
+  const puzzle = Sudoku.generate(difficulty);
+  return Sudoku.board_string_to_grid(puzzle);
+};
 
-export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+const SudokuPuzzle = () => {
+  const [initialPuzzle, setInitialPuzzle] = useState(generateRandomSudoku());
+  const [puzzle, setPuzzle] = useState(
+    JSON.parse(JSON.stringify(initialPuzzle))
   );
-}
+  const [solvedPuzzle, setSolvedPuzzle] = useState([]);
+  const [validationResult, setValidationResult] = useState("");
+
+  const validatePuzzle = () => {
+    const isPuzzleValid =
+      JSON.stringify(puzzle) === JSON.stringify(solvedPuzzle);
+    setValidationResult(isPuzzleValid ? "Correct" : "Incorrect");
+  };
+
+  const solveSudoku = (board) => {
+    const flattenedBoard = board.flat().join("");
+    const solved = Sudoku.solve(flattenedBoard);
+    if (solved) {
+      const solvedGrid = Sudoku.board_string_to_grid(solved);
+      return solvedGrid;
+    } else {
+      console.log("Puzzle is not solvable.");
+      return board;
+    }
+  };
+
+  const solvePuzzle = () => {
+    const solved = solveSudoku(puzzle);
+    setPuzzle(solved);
+    setSolvedPuzzle(solved);
+  };
+
+  const resetPuzzle = () => {
+    const newPuzzle = generateRandomSudoku();
+    setInitialPuzzle(newPuzzle);
+    setPuzzle(JSON.parse(JSON.stringify(newPuzzle)));
+    setSolvedPuzzle([]);
+    setValidationResult("");
+  };
+
+  const handleCellChange = (value, row, col) => {
+    const newPuzzle = puzzle.map((r, rowIndex) =>
+      r.map((cell, colIndex) =>
+        rowIndex === row && colIndex === col ? +value : cell
+      )
+    );
+    setPuzzle(newPuzzle);
+  };
+
+  const clearCell = (row, col) => {
+    const newPuzzle = puzzle.map((r, rowIndex) =>
+      r.map((cell, colIndex) =>
+        rowIndex === row && colIndex === col ? 0 : cell
+      )
+    );
+    setPuzzle(newPuzzle);
+  };
+
+  return (
+    <View style={styles.container}>
+      {puzzle.map((row, rowIndex) => (
+        <View key={rowIndex} style={styles.row}>
+          {row.map((cell, columnIndex) => (
+            <TextInput
+              key={columnIndex}
+              style={[
+                styles.cell,
+                (rowIndex + columnIndex) % 2 === 0
+                  ? styles.lightBackground
+                  : styles.darkBackground,
+              ]}
+              value={cell !== 0 ? String(cell) : ""}
+              onChangeText={(value) =>
+                handleCellChange(value, rowIndex, columnIndex)
+              }
+              keyboardType="numeric"
+              maxLength={1}
+              onFocus={() => clearCell(rowIndex, columnIndex)}
+            />
+          ))}
+        </View>
+      ))}
+      <View style={styles.buttonContainer}>
+        <Button title="Validate" onPress={validatePuzzle} />
+        <Button title="Solve" onPress={solvePuzzle} />
+        <Button title="Reset" onPress={resetPuzzle} />
+      </View>
+      {validationResult !== "" && (
+        <Text
+          style={
+            validationResult === "Correct"
+              ? styles.correctText
+              : styles.incorrectText
+          }
+        >
+          {validationResult}
+        </Text>
+      )}
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F5FCFF",
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  row: {
+    flexDirection: "row",
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  cell: {
+    borderWidth: 1,
+    borderColor: "black",
+    width: 30,
+    height: 30,
+    textAlign: "center",
+  },
+  lightBackground: {
+    backgroundColor: "#A9A9A9",
+  },
+  darkBackground: {
+    backgroundColor: "#EBF3E8",
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "60%",
+    marginTop: 20,
+  },
+  correctText: {
+    marginTop: 20,
+    color: "green",
+    fontWeight: "bold",
+  },
+  incorrectText: {
+    marginTop: 20,
+    color: "red",
+    fontWeight: "bold",
   },
 });
+
+export default SudokuPuzzle;
