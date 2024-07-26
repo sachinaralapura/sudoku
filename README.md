@@ -1,4 +1,4 @@
-# Welcome to your Expo app 👋
+# Welcome to your Expo app
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
@@ -16,35 +16,24 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
     npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+## A Sudoku puzzle is valid if:
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+    Each row contains all digits from 1 to 9.
+    Each column contains all digits from 1 to 9.
+    Each 3x3 subgrid contains all digits from 1 to 9.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Sudoku Solving Algorithm: Backtracking
 
-## Get a fresh project
+Backtracking is the most common and intuitive approach for solving Sudoku puzzles. It's essentially a brute-force method with a smart pruning strategy.
+How it works:
 
-When you're ready, run:
+    Find an empty cell: Start by finding an empty cell in the Sudoku grid.
+    Try numbers: For each possible number (1-9) in that cell:
+        Check if the number is valid (doesn't exist in the same row, column, or 3x3 subgrid).
+        If valid, recursively call the solving function for the next empty cell.
+    Backtrack: If none of the numbers work for the current cell, backtrack to the previous cell and try a different number.
 
-```bash
-npm run reset-project
-```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Image
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+![image](./assets/images/suduko.png)
